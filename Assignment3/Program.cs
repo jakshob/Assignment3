@@ -63,50 +63,65 @@ namespace EchoServer
 
             void read(Request request, TcpClient client)
             {
-                try
+
+                if (request.Path == "/api/categories")
                 {
-                    Console.WriteLine("Trying to find readpath ...");
-                    var requestPath = request.Path.Split('/')[3];
-                    Console.WriteLine("Path found! \n" + requestPath);
 
-                    var intRequestPath = Convert.ToInt32(requestPath);
-                    Console.WriteLine("Converted string to integer: " + intRequestPath);
-
-                    Console.WriteLine("Checking if the path exists ...");
-
-                    var doesElementExists = false;
-                    foreach (var element in categoryzs)
-                    {
-
-                        if (element.Id == intRequestPath)
-                        {
-                            doesElementExists = true;
-
-                            client.sendResponse(1, categoryzs[0].ToJson());
-                            
-                            Console.WriteLine("Found request!");
-                            //Console.WriteLine(responseSerialize.ToString());
-                            Console.WriteLine("Response sent!");
-                            break;
-                        }
-                        else Console.WriteLine("Request: " + requestPath + ", didn't match element: " + element.Id);
-
-                    }
-                    if (doesElementExists == false)
-                    {
-                        // Dette er blot en midlertidig måde at sende et response på.
-                        client.sendResponse(5, null);
-                        Console.WriteLine("Response status sent: 5 Not found\n");
-                    }
-
-
+                    Console.WriteLine("Jeg kører!");
+                    var responseObject = new Response { Status = "1 Ok", Body = categoryzs.ToJson() };
+                    var responseSerialize = JsonConvert.SerializeObject(responseObject);
+                    Console.WriteLine(responseSerialize.ToString());
+                    client.SendAnswer(responseSerialize);
                 }
-                catch
+                else
                 {
-                    client.sendResponse(4, null);
-                    
-                    Console.WriteLine("No path was found");
-                    Console.WriteLine("Response status sent: 4 Bad Request\n");
+
+
+                    try
+                    {
+                        Console.WriteLine("Trying to find readpath ...");
+                        var requestPath = request.Path.Split('/')[3];
+                        Console.WriteLine("Path found! \n" + requestPath);
+
+                        var intRequestPath = Convert.ToInt32(requestPath);
+                        Console.WriteLine("Converted string to integer: " + intRequestPath);
+
+                        Console.WriteLine("Checking if the path exists ...");
+
+                        var doesElementExists = false;
+                        foreach (var element in categoryzs)
+                        {
+
+                            if (element.Id == intRequestPath)
+                            {
+                                doesElementExists = true;
+
+                                client.sendResponse(1, categoryzs[0].ToJson());
+
+                                Console.WriteLine("Found request!");
+                                //Console.WriteLine(responseSerialize.ToString());
+                                Console.WriteLine("Response sent!");
+                                break;
+                            }
+                            else Console.WriteLine("Request: " + requestPath + ", didn't match element: " + element.Id);
+
+                        }
+                        if (doesElementExists == false)
+                        {
+                            // Dette er blot en midlertidig måde at sende et response på.
+                            client.sendResponse(5, null);
+                            Console.WriteLine("Response status sent: 5 Not found\n");
+                        }
+
+
+                    }
+                    catch
+                    {
+                        client.sendResponse(4, null);
+
+                        Console.WriteLine("No path was found");
+                        Console.WriteLine("Response status sent: 4 Bad Request\n");
+                    }
                 }
 
             }
