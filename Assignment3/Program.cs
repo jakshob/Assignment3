@@ -42,19 +42,14 @@ namespace EchoServer
                             read(request, client);
                             break;
 
-                        case "update":
-                            Console.WriteLine("The client is requesting the method: Update");
-                            if (!hasBody(request))
-                        {
-                            client.sendResponse(7, null);
-                            break;
-                        }
-                            update();
-                            break;
+                    case "update":
+                        Console.WriteLine("The client is requesting the method: Update");
+                        update(request,client);
+                        break;
 
                         case "delete":
                             Console.WriteLine("The client is requesting the method: Delete");
-                            delete();
+                            delete(request,client);
                             break;
 
                     case "echo":                        
@@ -165,14 +160,50 @@ namespace EchoServer
                 }
 
             }
-            void update()
+            void update(Request request, TcpClient client)
             {
-                Console.WriteLine("Can not handle request yet...");
+
+                //Der er en gentagelse af splitmetode her også
+                var requestPathId = Convert.ToInt32(request.Path.Split('/')[3]);
+                //Hvis id som der requestes eksisterer i "categoryz"
+                if (requestPathId <= categoryzs.Count)
+                {
+
+                    //id fra request og id fra category matcher og navnet skiftes med det fra request.
+                    categoryzs[requestPathId].Name = request.Body.FromJson<Categoryz>().Name;
+                    Console.WriteLine("request-id: " + requestPathId);
+
+                    //Gentagelse af send response.
+                    var responseObject = new Response { Status = "3 updated", Body = categoryzs[requestPathId].ToJson() };
+                    var responseSerialize = JsonConvert.SerializeObject(responseObject);
+                    Console.WriteLine(responseSerialize.ToString());
+                    client.SendAnswer(responseSerialize);
+                }
+                else {
+                    //Send fejlkode + Gentagelse af send response
+                    var responseObject = new Response { Status = "5 not found" };
+                    var responseSerialize = JsonConvert.SerializeObject(responseObject);
+                    Console.WriteLine(responseSerialize.ToString());
+                    client.SendAnswer(responseSerialize);
+                }
+                
+
+                //Console.WriteLine("Can not handle request yet...");
 
             }
-            void delete()
+            void delete(Request request, TcpClient client)
             {
-                Console.WriteLine("Can not handle request yet...");
+                Console.WriteLine("Methode is under construction..");
+                try
+                {
+                    var requestPath = request.Path.Split('/')[3];
+                }
+                catch
+                {
+                    Console.WriteLine("No path wasfound");
+                    client.sendResponse(4, null);
+                }
+
             }
 
             void echo(Request request, TcpClient client, string path = "")
