@@ -82,6 +82,11 @@ namespace EchoServer
                 status = "6 Error";
             }
 
+            if (statuscode == 7)
+            {
+                status = "missing body";
+            }
+
            
             var ResponseObject = new Response { Status = status, Body = thisBody };
             var ResponseSerialize = JsonConvert.SerializeObject(ResponseObject);
@@ -121,6 +126,12 @@ namespace EchoServer
             if (statuscode == 6)
             {
                 status = "6 Error";
+            }
+
+            
+            if (statuscode == 7)
+            {
+                status = "missing body";
             }
 
 
