@@ -25,57 +25,80 @@ namespace EchoServer
             {   
                 var client = server.AcceptTcpClient();
                 var request = client.ReadRequest();
-                switch (request.Method)
-                {
-                    case "create":
-                        Console.WriteLine("The client is requesting the method: Create");
-                        if (!hasBody(request))
+                try{
+                    switch (request.Method)
+                    {
+                        case "create":
+                            Console.WriteLine("The client is requesting the method: Create");
+                            if (!hasBody(request))
                         {
                             client.sendResponse(7, null);
                             break;
                         }
-                        create(request, client);
-                        break;
+                            create(request, client);
+                            break;
 
-                    case "read":
-                        Console.WriteLine("The client is requesting the method: Read");
-                        
-                        read(request, client);
-                        break;
+                        case "read":
+                            Console.WriteLine("The client is requesting the method: Read");
+                            read(request, client);
+                            break;
 
-                    case "update":
-                        Console.WriteLine("The client is requesting the method: Update");
-                        if (!hasBody(request))
+                        case "update":
+                            Console.WriteLine("The client is requesting the method: Update");
+                            if (!hasBody(request))
                         {
                             client.sendResponse(7, null);
                             break;
                         }
-                        update();
-                        break;
+                            update();
+                            break;
 
-                    case "delete":
-                        Console.WriteLine("The client is requesting the method: Delete");
-                        delete();
-                        
-                        break;
+                        case "delete":
+                            Console.WriteLine("The client is requesting the method: Delete");
+                            delete();
+                            break;
 
                     case "echo":                        
-                        Console.WriteLine("The client is requesting the method: Echo");
-                        if (!hasBody(request))
+                            Console.WriteLine("The client is requesting the method: Echo");
+                            if (!hasBody(request))
                         {
                             client.sendResponse(7, null);
                             break;
                         }
-                        echo(request, client);
-                        break;
+                            echo(request, client);
+                            break;
+                    }
                 }
+                catch{
+                    errorFunction();
+                }                      
 
                 client.Close();
             }
-
+            
             void create(Request request, TcpClient client)
             {
-                categoryzs.Add(new Categoryz{ Id = categoryzs.Count + 1, Name = request.Body});
+                try {
+                    if (request.Path is string) {
+                        try {
+                            if (request.Date is Int32) {
+                                categoryzs.Add(new Categoryz { Id = categoryzs.Count + 1, Name = request.Body });
+                            }
+                            else {
+                                errorFunction();
+                            }
+                        }
+                        catch {
+                            errorFunction();
+                        }
+                    }
+                    else {
+                        errorFunction();
+                    }
+                }
+                catch {
+                    errorFunction();
+                }
             }
 
             void read(Request request, TcpClient client)
@@ -168,7 +191,9 @@ namespace EchoServer
                 return tempHasBody;
             }
 
+            void errorFunction() {
 
+            }
         }
     }
 }
