@@ -67,10 +67,14 @@ namespace EchoServer
                         }
                             echo(request, client);
                             break;
+
+						default:
+							errorFunction(request,1);
+							break;
                     }
                 }
                 catch{
-                    errorFunction();
+                    errorFunction(request,2);
                 }                      
 
                 client.Close();
@@ -86,19 +90,19 @@ namespace EchoServer
 								categoryzs.Add(new Categoryz { Id = categoryzs.Count + 1, Name = request.Body });
 							}
 							else{
-								errorFunction();
+								errorFunction(request,0);
 							}
 						}
                         catch {
-                            errorFunction();
+                            errorFunction(request,0);
                         }
                     }
                     else {
-                        errorFunction();
+                        errorFunction(request,0);
                     }
                 }
                 catch {
-                    errorFunction();
+                    errorFunction(request,0);
                 }
             }
 
@@ -240,7 +244,17 @@ namespace EchoServer
                 return tempHasBody;
             }
 
-            void errorFunction() {
+            void errorFunction(Request request, int sender) {
+				var errors = new list<string>{};
+				if(sender == 1){ errors.Add("illegal method"); }
+				if(sender == 2){ errors.Add("missing method"); }
+
+				try{ if (request.Path is string){} }
+				catch{ errors.Add("missing path"); }
+
+				try{ if (request.Path is string){} }
+				catch{ errors.Add("missing path"); }
+
 
             }
         }
