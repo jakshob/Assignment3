@@ -29,16 +29,27 @@ namespace EchoServer
                 {
                     case "create":
                         Console.WriteLine("The client is requesting the method: Create");
+                        if (!hasBody(request))
+                        {
+                            client.sendResponse(7, null);
+                            break;
+                        }
                         create(request, client);
                         break;
 
                     case "read":
                         Console.WriteLine("The client is requesting the method: Read");
+                        
                         read(request, client);
                         break;
 
                     case "update":
                         Console.WriteLine("The client is requesting the method: Update");
+                        if (!hasBody(request))
+                        {
+                            client.sendResponse(7, null);
+                            break;
+                        }
                         update();
                         break;
 
@@ -47,8 +58,14 @@ namespace EchoServer
                         delete();
                         
                         break;
+
                     case "echo":                        
                         Console.WriteLine("The client is requesting the method: Echo");
+                        if (!hasBody(request))
+                        {
+                            client.sendResponse(7, null);
+                            break;
+                        }
                         echo(request, client);
                         break;
                 }
@@ -141,11 +158,15 @@ namespace EchoServer
                 Console.WriteLine("Can not handle request yet...");
             }
 
-            /*bool hasBody(Request request)
+            bool hasBody(Request request)
             {
-                hasBody = false;
                 
-            }*/
+                var tempHasBody = true;
+                if (request.Body == null)
+                tempHasBody = false;
+
+                return tempHasBody;
+            }
 
 
         }
