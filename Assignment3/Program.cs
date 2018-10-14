@@ -20,7 +20,6 @@ namespace EchoServer
             server.Start();
             Console.WriteLine("Server started ...");
 
-
             while (true)
             {   
                 var client = server.AcceptTcpClient();
@@ -78,16 +77,17 @@ namespace EchoServer
             
             void create(Request request, TcpClient client)
             {
+				Int32 newDate;
                 try {
                     if (request.Path is string) {
                         try {
-                            if (request.Date is Int32) {
-                                categoryzs.Add(new Categoryz { Id = categoryzs.Count + 1, Name = request.Body });
-                            }
-                            else {
-                                errorFunction();
-                            }
-                        }
+							if(Int32.TryParse(request.Date, out newDate)){
+								categoryzs.Add(new Categoryz { Id = categoryzs.Count + 1, Name = request.Body });
+							}
+							else{
+								errorFunction();
+							}
+						}
                         catch {
                             errorFunction();
                         }
