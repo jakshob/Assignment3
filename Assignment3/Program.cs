@@ -45,7 +45,7 @@ namespace EchoServer
 
                     case "update":
                         Console.WriteLine("The client is requesting the method: Update");
-                        update();
+                        update(request, client);
                         break;
 
                         case "delete":
@@ -76,7 +76,8 @@ namespace EchoServer
                 try {
                     if (request.Path is string) {
                         try {
-                            if (request.Date is Int32) {
+                            //Convert.ToInt32(request.Date)
+                            if (int.TryParse(request.Date, out int value)) {
                                 categoryzs.Add(new Categoryz { Id = categoryzs.Count + 1, Name = request.Body });
                             }
                             else {
