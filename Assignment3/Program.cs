@@ -1,86 +1,104 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Net;
 using System.Net.Sockets;
-using System.Collections.Generic;
+using System.Threading;
 using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 
-namespace EchoServer
+namespace Assignment3
 {
-    class Program
+    public class Program
     {
-        static void Main(string[] args)
+        public static void Main(string[] args)
         {
-            List<Categoryz> categoryzs = new List<Categoryz>();
-            categoryzs.Add(new Categoryz { Id = 1 , Name = "Beverages" });
-            categoryzs.Add(new Categoryz { Id = 2 , Name = "Condiments" });
-            categoryzs.Add(new Categoryz { Id = 3 , Name = "Confections" });
+            var categoryzs = new List<Categoryz>
+            {
+                new Categoryz { Id = 1, Name = "Beverages" },
+                new Categoryz { Id = 2, Name = "Condiments" },
+                new Categoryz { Id = 3, Name = "Confections" }
+            };
+
 
             var server = new TcpListener(IPAddress.Parse("127.0.0.1"), 5000);
             server.Start();
             Console.WriteLine("Server started ...");
-
-            while (true)
-            {   
-                var client = server.AcceptTcpClient();
-                var request = client.ReadRequest();
-                try{
-                    switch (request.Method)
-                    {
-                        case "create":
-                            Console.WriteLine("The client is requesting the method: Create");
-                            if (!hasBody(request))
-                        {
-                            client.sendResponse(7, null);
-                            break;
-                        }
-                            create(request, client);
-                            break;
-
-                        case "read":
-                            Console.WriteLine("The client is requesting the method: Read");
-                            read(request, client);
-                            break;
-
-                       case "update":
-                           Console.WriteLine("The client is requesting the method: Update");
-                            if (!hasBody(request))
-                            {
-                                client.sendResponse(8, null);
-                                break;
-                            }
-
-                            update(request, client);
-                                break;
-                        
-                       case "delete":
-                            Console.WriteLine("The client is requesting the method: Delete");
-                            delete(request,client);
-                            break;
-
-                       case "echo":                        
-                            Console.WriteLine("The client is requesting the method: Echo");
-                            if (!hasBody(request))
-                        {
-                            client.sendResponse(7, null);
-                            break;
-                        }
-                            echo(request, client);
-                            break;
-
-						default:
-							errorFunction(request,1);
-							break;
-                    }
-                }
-                catch{
-                    errorFunction(request,2);
-                }                      
-
-                client.Close();
-            }
             
-            void create(Request request, TcpClient client)
+            while (true)
+            {
+                Console.WriteLine("\nWaiting for new client ...");
+                var client = server.AcceptTcpClient();
+                var t = new Thread(start: new ParameterizedThreadStart(Handle));
+                t.Start(client);  
+            }
+            void Handle(object obj)
+            {
+                var client = (TcpClient)obj;
+                Console.WriteLine("\n----------------------------------------------NEW THREAD CREATED!");
+
+                var request = client.ReadRequest();
+                Console.WriteLine("Request: " + request.ToJson() + "\n");
+                try
+                    {
+                        switch (request.Method)
+                        {
+                            case "create":
+                                Console.WriteLine("The client is requesting the method: Create ");
+                                if (!HasBody(request))
+                                {
+                                    client.SendResponse(7, null);
+                                    break;
+                                }
+                                Create(request, client);
+                                break;
+
+                            case "read":
+                                Console.WriteLine("The client is requesting the method: Read");
+                                Read(request, client);
+                                break;
+
+                            case "update":
+                                Console.WriteLine("The client is requesting the method: Update");
+                                if (!HasBody(request))
+                                {
+                                    client.SendResponse(8, null);
+                                    break;
+                                }
+
+                                Update(request, client);
+                                break;
+
+                            case "delete":
+                                Console.WriteLine("The client is requesting the method: Delete");
+                                Delete(request, client);
+                                break;
+
+                            case "echo":
+                                Console.WriteLine("The client is requesting the method: Echo");
+                                if (!HasBody(request))
+                                {
+                                    client.SendResponse(7, null);
+                                    break;
+                                }
+                                Echo(request, client);
+                                break;
+
+                            default:
+                                ErrorFunction(request, 1);
+                                break;
+                        }
+                    }
+                    catch
+                    {
+                        ErrorFunction(request, 2);
+                }
+                finally
+                {
+                    client.Close();
+                    Console.WriteLine("Client Closed...");
+                }      
+            }
+
+            void Create(Request request, TcpClient client)
             {
 				Int32 newDate;
                 try {
@@ -90,38 +108,32 @@ namespace EchoServer
 								categoryzs.Add(new Categoryz { Id = categoryzs.Count + 1, Name = request.Body });
 							}
 							else{
-								errorFunction(request,0);
+								ErrorFunction(request,0);
 							}
 						}
                         catch {
-                            errorFunction(request,0);
+                            ErrorFunction(request,0);
                         }
                     }
                     else {
-                        errorFunction(request,0);
+                        ErrorFunction(request,0);
                     }
                 }
                 catch {
-                    errorFunction(request,0);
+                    ErrorFunction(request,0);
                 }
             }
 
-            void read(Request request, TcpClient client)
+            void Read(Request request, TcpClient client)
             {
 
                 if (request.Path == "/api/categories")
                 {
-
-                    Console.WriteLine("Jeg kører!");
-                    var responseObject = new Response { Status = "1 Ok", Body = categoryzs.ToJson() };
-                    var responseSerialize = JsonConvert.SerializeObject(responseObject);
-                    Console.WriteLine(responseSerialize.ToString());
-                    client.SendAnswer(responseSerialize);
+                    Console.WriteLine("Sending all categories: ");
+                    client.SendResponse(1, categoryzs.ToJson());
                 }
                 else
                 {
-
-
                     try
                     {
                         Console.WriteLine("Trying to find readpath ...");
@@ -136,116 +148,84 @@ namespace EchoServer
                         var doesElementExists = false;
                         foreach (var element in categoryzs)
                         {
-
                             if (element.Id == intRequestPath)
                             {
                                 doesElementExists = true;
 
-                                client.sendResponse(1, categoryzs[0].ToJson());
-
                                 Console.WriteLine("Found request!");
-                                //Console.WriteLine(responseSerialize.ToString());
-                                Console.WriteLine("Response sent!");
+                                client.SendResponse(1, categoryzs[0].ToJson());
                                 break;
                             }
-                            else Console.WriteLine("Request: " + requestPath + ", didn't match element: " + element.Id);
-
+                            Console.WriteLine("Request: " + requestPath + ", didn't match element: " + element.Id);
                         }
-                        if (doesElementExists == false)
-                        {
-                            // Dette er blot en midlertidig måde at sende et response på.
-                            client.sendResponse(5, null);
-                            Console.WriteLine("Response status sent: 5 Not found\n");
-                        }
+                        if (doesElementExists != false) return;
 
-
+                        client.SendResponse(5, null);
                     }
                     catch
                     {
-                        client.sendResponse(4, null);
-
                         Console.WriteLine("No path was found");
-                        Console.WriteLine("Response status sent: 4 Bad Request\n");
+                        client.SendResponse(4, null);
                     }
                 }
 
             }
-            void update(Request request, TcpClient client)
+            void Update(Request request, TcpClient client)
             {
 
                 if (request.Path.Contains("/api/categories/"))
                 {
-                    //Der er en gentagelse af splitmetode her også
                      var requestPathId = Convert.ToInt32(request.Path.Split('/')[3]);
                
                     //Hvis id som der requestes eksisterer i "categoryz"
                     if (requestPathId <= categoryzs.Count)
                     {
-
                         //id fra request og id fra category matcher og navnet skiftes med det fra request.
                         categoryzs[requestPathId].Name = request.Body.FromJson<Categoryz>().Name;
                         Console.WriteLine("request-id: " + requestPathId);
 
-                        //Gentagelse af send response. (alle gentagelser skal lige fixes i én metode el. lign.)
-                        var responseObject = new Response { Status = "3 updated", Body = categoryzs[requestPathId].ToJson() };
-                        var responseSerialize = JsonConvert.SerializeObject(responseObject);
-                        Console.WriteLine(responseSerialize.ToString());
-                        client.SendAnswer(responseSerialize);
+                        client.SendResponse(3, categoryzs[requestPathId].ToJson());
                     }
 
                     else
                     {
-                        //Send fejlkode + Gentagelse af send response
-                        var responseObject = new Response { Status = "5 not found" };
-                        var responseSerialize = JsonConvert.SerializeObject(responseObject);
-                        Console.WriteLine(responseSerialize.ToString());
-                        client.SendAnswer(responseSerialize);
+                        client.SendResponse(5, null);
                     }
                 }
-                else { Console.WriteLine("Missing Path");
-                    //Send fejlkode + Gentagelse af send response
-                    var responseObject = new Response { Status = "4 bad request" };
-                    var responseSerialize = JsonConvert.SerializeObject(responseObject);
-                    Console.WriteLine(responseSerialize.ToString());
-                    client.SendAnswer(responseSerialize);
+                else
+                {
+                    client.SendResponse(4,null);
                 }
-                
-                //Console.WriteLine("Can not handle request yet...");
-
             }
-            void delete(Request request, TcpClient client)
+
+            void Delete(Request request, TcpClient client)
             {
-                Console.WriteLine("Methode is under construction..");
+                Console.WriteLine("Method is under construction..");
                 try
                 {
                     var requestPath = request.Path.Split('/')[3];
                 }
                 catch
                 {
-                    Console.WriteLine("No path wasfound");
-                    client.sendResponse(4, null);
+                    client.SendResponse(4, null);
                 }
 
             }
 
-            void echo(Request request, TcpClient client, string path = "")
+            void Echo(Request request, TcpClient client, string path = "")
             {
-                client.sendResponse(1, request.Body);
+                client.SendResponse(1, request.Body);
                 Console.WriteLine("Can not handle request yet...");
             }
 
-            bool hasBody(Request request)
+            bool HasBody(Request request)
             {
-                
-                var tempHasBody = true;
-                if (request.Body == null)
-                tempHasBody = false;
-
+                var tempHasBody = request.Body != null;
                 return tempHasBody;
             }
 
-            void errorFunction(Request request, int sender) {
-				var errors = new list<string>{};
+            void ErrorFunction(Request request, int sender) {
+				var errors = new List<string>{};
 				if(sender == 1){ errors.Add("illegal method"); }
 				if(sender == 2){ errors.Add("missing method"); }
 

@@ -1,12 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Net.Sockets;
 using System.Text;
-using System.IO;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
 
-namespace EchoServer
+namespace Assignment3
 {
     public static class Util
     {
@@ -48,103 +48,45 @@ namespace EchoServer
             }
         }
 
-        public static void sendResponse(this TcpClient client, int statuscode, string body)
+        public static void SendResponse(this TcpClient client, int statuscode, string body)
         {
             var thisBody = body;
             var status = "";
-            if (statuscode == 1)
+
+            switch (statuscode)
             {
-                status = "1 Ok";
+                case 1:
+                    status = "1 Ok";
+                    break;
+                case 2:
+                    status = "2 Created";
+                    break;
+                case 3:
+                    status = "3 Updated";
+                    break;
+                case 4:
+                    status = "4 Bad Request";
+                    break;
+                case 5:
+                    status = "5 Not found";
+                    break;
+                case 6:
+                    status = "6 Error";
+                    break;
+                case 7:
+                    status = "missing body";
+                    break;
             }
 
-            if (statuscode == 2)
-            {
-                status = "2 Created";
-            }
-
-            if (statuscode == 3)
-            {
-                status = "3 Updated";
-            }
-
-            if (statuscode == 4)
-            {
-                status = "4 Bad Request";
-            }
-
-            if (statuscode == 5)
-            {
-                status = "5 Not found";
-            }
-
-            if (statuscode == 6)
-            {
-                status = "6 Error";
-            }
-
-            if (statuscode == 7)
-            {
-                status = "missing body";
-            }
             if (statuscode == 7)
             {
                 status = "illegal body";
             }
 
-
-
-            var ResponseObject = new Response { Status = status, Body = thisBody };
-            var ResponseSerialize = JsonConvert.SerializeObject(ResponseObject);
-            client.SendAnswer(ResponseSerialize);
-            Console.WriteLine(ResponseSerialize);
-        }
-
-        public static void sendListResponse(this TcpClient client, int statuscode, List<Categoryz> categories)
-        {
-            
-            var status = "";
-            if (statuscode == 1)
-            {
-                status = "1 Ok";
-            }
-
-            if (statuscode == 2)
-            {
-                status = "2 Created";
-            }
-
-            if (statuscode == 3)
-            {
-                status = "3 Updated";
-            }
-
-            if (statuscode == 4)
-            {
-                status = "4 Bad Request";
-            }
-
-            if (statuscode == 5)
-            {
-                status = "5 Not found";
-            }
-
-            if (statuscode == 6)
-            {
-                status = "6 Error";
-            }
-
-            
-            if (statuscode == 7)
-            {
-                status = "missing body";
-            }
-
-
-            var ResponseObject = new { Status = status, Body = categories };
-            var ResponseSerialize = JsonConvert.SerializeObject(ResponseObject);
-            client.SendAnswer(ResponseSerialize);
-            Console.WriteLine(ResponseSerialize);
-
+            var responseObject = new Response { Status = status, Body = thisBody };
+            var responseSerialize = JsonConvert.SerializeObject(responseObject);
+            client.SendAnswer(responseSerialize);
+            Console.WriteLine("Response sent: " + responseSerialize);
         }
     }
 }

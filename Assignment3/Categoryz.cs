@@ -1,7 +1,6 @@
 ﻿using Newtonsoft.Json;
-using Newtonsoft.Json.Serialization;
 
-namespace EchoServer
+namespace Assignment3
 {
     public class Categoryz
     {
