@@ -45,12 +45,12 @@ namespace EchoServer
 
                     case "update":
                         Console.WriteLine("The client is requesting the method: Update");
-                        update();
+                        update(request,client);
                         break;
 
                         case "delete":
                             Console.WriteLine("The client is requesting the method: Delete");
-                            delete();
+                            delete(request,client);
                             break;
 
                     case "echo":                        
@@ -191,9 +191,19 @@ namespace EchoServer
                 //Console.WriteLine("Can not handle request yet...");
 
             }
-            void delete()
+            void delete(Request request, TcpClient client)
             {
-                Console.WriteLine("Can not handle request yet...");
+                Console.WriteLine("Methode is under construction..");
+                try
+                {
+                    var requestPath = request.Path.Split('/')[3];
+                }
+                catch
+                {
+                    Console.WriteLine("No path wasfound");
+                    client.sendResponse(4, null);
+                }
+
             }
 
             void echo(Request request, TcpClient client, string path = "")
