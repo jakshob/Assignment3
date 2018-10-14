@@ -43,17 +43,23 @@ namespace EchoServer
                             read(request, client);
                             break;
 
-                    case "update":
-                        Console.WriteLine("The client is requesting the method: Update");
-                        update(request,client);
-                        break;
+                       case "update":
+                           Console.WriteLine("The client is requesting the method: Update");
+                            if (!hasBody(request))
+                            {
+                                client.sendResponse(8, null);
+                                break;
+                            }
 
-                        case "delete":
+                            update(request, client);
+                                break;
+                        
+                       case "delete":
                             Console.WriteLine("The client is requesting the method: Delete");
                             delete(request,client);
                             break;
 
-                    case "echo":                        
+                       case "echo":                        
                             Console.WriteLine("The client is requesting the method: Echo");
                             if (!hasBody(request))
                         {
@@ -163,31 +169,43 @@ namespace EchoServer
             void update(Request request, TcpClient client)
             {
 
-                //Der er en gentagelse af splitmetode her også
-                var requestPathId = Convert.ToInt32(request.Path.Split('/')[3]);
-                //Hvis id som der requestes eksisterer i "categoryz"
-                if (requestPathId <= categoryzs.Count)
+                if (request.Path.Contains("/api/categories/"))
                 {
+                    //Der er en gentagelse af splitmetode her også
+                     var requestPathId = Convert.ToInt32(request.Path.Split('/')[3]);
+               
+                    //Hvis id som der requestes eksisterer i "categoryz"
+                    if (requestPathId <= categoryzs.Count)
+                    {
 
-                    //id fra request og id fra category matcher og navnet skiftes med det fra request.
-                    categoryzs[requestPathId].Name = request.Body.FromJson<Categoryz>().Name;
-                    Console.WriteLine("request-id: " + requestPathId);
+                        //id fra request og id fra category matcher og navnet skiftes med det fra request.
+                        categoryzs[requestPathId].Name = request.Body.FromJson<Categoryz>().Name;
+                        Console.WriteLine("request-id: " + requestPathId);
 
-                    //Gentagelse af send response.
-                    var responseObject = new Response { Status = "3 updated", Body = categoryzs[requestPathId].ToJson() };
-                    var responseSerialize = JsonConvert.SerializeObject(responseObject);
-                    Console.WriteLine(responseSerialize.ToString());
-                    client.SendAnswer(responseSerialize);
+                        //Gentagelse af send response. (alle gentagelser skal lige fixes i én metode el. lign.)
+                        var responseObject = new Response { Status = "3 updated", Body = categoryzs[requestPathId].ToJson() };
+                        var responseSerialize = JsonConvert.SerializeObject(responseObject);
+                        Console.WriteLine(responseSerialize.ToString());
+                        client.SendAnswer(responseSerialize);
+                    }
+
+                    else
+                    {
+                        //Send fejlkode + Gentagelse af send response
+                        var responseObject = new Response { Status = "5 not found" };
+                        var responseSerialize = JsonConvert.SerializeObject(responseObject);
+                        Console.WriteLine(responseSerialize.ToString());
+                        client.SendAnswer(responseSerialize);
+                    }
                 }
-                else {
+                else { Console.WriteLine("Missing Path");
                     //Send fejlkode + Gentagelse af send response
-                    var responseObject = new Response { Status = "5 not found" };
+                    var responseObject = new Response { Status = "4 bad request" };
                     var responseSerialize = JsonConvert.SerializeObject(responseObject);
                     Console.WriteLine(responseSerialize.ToString());
                     client.SendAnswer(responseSerialize);
                 }
                 
-
                 //Console.WriteLine("Can not handle request yet...");
 
             }

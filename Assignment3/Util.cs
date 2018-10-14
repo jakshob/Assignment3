@@ -86,8 +86,13 @@ namespace EchoServer
             {
                 status = "missing body";
             }
+            if (statuscode == 7)
+            {
+                status = "illegal body";
+            }
 
-           
+
+
             var ResponseObject = new Response { Status = status, Body = thisBody };
             var ResponseSerialize = JsonConvert.SerializeObject(ResponseObject);
             client.SendAnswer(ResponseSerialize);
